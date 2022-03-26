@@ -8,19 +8,24 @@ namespace dotnet_users_posts.Services.PostService
 {
     public class PostService : IPostService
     {
+        private static List<Posts> posts = new List<Posts>{
+            new Posts(),
+            new Posts{Id=1, Text="The book is very interesting."}
+        };
         public List<Posts> AddPost(Posts newPost)
         {
-            throw new NotImplementedException();
+            posts.Add(newPost);
+            return posts;
         }
 
         public List<Posts> GetAllPosts()
         {
-            throw new NotImplementedException();
+            return posts;
         }
 
         public Posts GetPostById(int id)
         {
-            throw new NotImplementedException();
+            return posts.FirstOrDefault(c => c.Id == id);
         }
     }
 }

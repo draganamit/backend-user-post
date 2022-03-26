@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using dotnet_users_posts.Models;
+using dotnet_users_posts.Services.PostService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_users_posts.Controllers
@@ -12,29 +13,31 @@ namespace dotnet_users_posts.Controllers
     public class PostsController : ControllerBase
     {
 
-        private static List<Posts> posts = new List<Posts>{
-            new Posts(),
-            new Posts{Id=1, Text="The book is very interesting."}
-        };
+        private readonly IPostService _postService;
+
+        public PostsController(IPostService postService)
+        {
+            _postService = postService;
+
+        }
 
         [HttpGet("GetAll")]
         public IActionResult Get()
         {
-            return Ok(posts);
+            return Ok(_postService.GetAllPosts());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetSingle(int id)
         {
-            return Ok(posts.FirstOrDefault(c => c.Id == id));
+            return Ok(_postService.GetPostById(id));
         }
-        
+
         [HttpPost]
         public IActionResult AddPost(Posts newPost)
         {
-            posts.Add(newPost);
-            return Ok(posts);            
+            return Ok(_postService.AddPost(newPost));
         }
-    
+
     }
 }
