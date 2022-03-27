@@ -27,6 +27,7 @@ namespace dotnet_users_posts
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddAutoMapper(typeof (Startup));
             services.AddScoped<IPostService, PostService>();
         }
 

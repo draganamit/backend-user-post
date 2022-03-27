@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend_user_post.Dtos.Post;
+using backend_user_post.Models;
 using dotnet_users_posts.Models;
 using dotnet_users_posts.Services.PostService;
 using Microsoft.AspNetCore.Mvc;
@@ -22,21 +24,42 @@ namespace dotnet_users_posts.Controllers
         }
 
         [HttpGet("GetAll")]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_postService.GetAllPosts());
+            return Ok(await _postService.GetAllPosts());
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetSingle(int id)
+        public async Task<IActionResult> GetSingle(int id)
         {
-            return Ok(_postService.GetPostById(id));
+            return Ok(await _postService.GetPostById(id));
         }
 
         [HttpPost]
-        public IActionResult AddPost(Posts newPost)
+        public async Task<IActionResult> AddPost(AddPostDto newPost)
         {
-            return Ok(_postService.AddPost(newPost));
+            return Ok(await _postService.AddPost(newPost));
+        }
+
+        [HttpPut]    
+        public async Task<IActionResult> UpdatePost(UpdatePostDto updatedPost)
+        {
+            ServiceResponse<GetPostDto> response = await _postService.UpdatePost(updatedPost);
+            if(response.Data == null)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            ServiceResponse<List<GetPostDto>> response = await _postService.DeletePost(id);
+            if(response.Data == null)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
         }
 
     }
