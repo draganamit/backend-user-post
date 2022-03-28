@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using backend_user_post.Data;
 using backend_user_post.Dtos.Post;
 using backend_user_post.Models;
 using dotnet_users_posts.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_users_posts.Services.PostService
 {
     public class PostService : IPostService
     {
-        private static List<Posts> posts = new List<Posts>{
-            new Posts(),
-            new Posts{Id=1, Text="The book is very interesting."}
-        };
         private readonly IMapper _mapper;
-        public PostService(IMapper mapper)
+        private readonly DataContext _context;
+        public PostService(IMapper mapper, DataContext context)
         {
+            _context = context;
             _mapper = mapper;
 
         }
@@ -25,9 +25,9 @@ namespace dotnet_users_posts.Services.PostService
         {
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
             Posts post = _mapper.Map<Posts>(newPost);
-            post.Id = posts.Max(c => c.Id) + 1;
-            posts.Add(post);
-            serviceResponse.Data = (posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+            await _context.Posts.AddAsync(post);
+            await _context.SaveChangesAsync();
+            serviceResponse.Data = (_context.Posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
             return serviceResponse;
         }
 
@@ -36,15 +36,16 @@ namespace dotnet_users_posts.Services.PostService
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
             try
             {
-            Posts post = posts.First(c=>c.Id==id);
-            posts.Remove(post);
+                Posts post = _context.Posts.First(c => c.Id == id);
+                _context.Posts.Remove(post);
+                await _context.SaveChangesAsync();
 
-            serviceResponse.Data =(posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+                serviceResponse.Data = (_context.Posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                serviceResponse.Success=false;
-                serviceResponse.Message=ex.Message;                
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
             }
 
             return serviceResponse;
@@ -53,7 +54,8 @@ namespace dotnet_users_posts.Services.PostService
         public async Task<ServiceResponse<List<GetPostDto>>> GetAllPosts()
         {
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
-            serviceResponse.Data = (posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+            List<Posts> dbPosts = await _context.Posts.ToListAsync();
+            serviceResponse.Data = (dbPosts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
             // serviceResponse.Data = _mapper.Map<List<GetPostDto>>(posts).ToList();
             return serviceResponse;
         }
@@ -61,7 +63,8 @@ namespace dotnet_users_posts.Services.PostService
         public async Task<ServiceResponse<GetPostDto>> GetPostById(int id)
         {
             ServiceResponse<GetPostDto> serviceResponse = new ServiceResponse<GetPostDto>();
-            serviceResponse.Data = _mapper.Map<GetPostDto>(posts.FirstOrDefault(c => c.Id == id));
+            Posts dbPost = await _context.Posts.FirstOrDefaultAsync(c => c.Id == id);
+            serviceResponse.Data = _mapper.Map<GetPostDto>(dbPost);
             return serviceResponse;
         }
 
@@ -70,15 +73,18 @@ namespace dotnet_users_posts.Services.PostService
             ServiceResponse<GetPostDto> serviceResponse = new ServiceResponse<GetPostDto>();
             try
             {
-            Posts post = posts.FirstOrDefault(c=>c.Id == updatedPost.Id);
-            post.Text = updatedPost.Text;
+                Posts post = await _context.Posts.FirstOrDefaultAsync(c => c.Id == updatedPost.Id);
+                post.Text = updatedPost.Text;
 
-            serviceResponse.Data = _mapper.Map<GetPostDto>(post);
+                _context.Posts.Update(post);
+                await _context.SaveChangesAsync();
+
+                serviceResponse.Data = _mapper.Map<GetPostDto>(post);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                serviceResponse.Success=false;
-                serviceResponse.Message=ex.Message;                
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
             }
 
             return serviceResponse;
