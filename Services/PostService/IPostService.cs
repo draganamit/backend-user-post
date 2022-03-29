@@ -10,7 +10,7 @@ namespace dotnet_users_posts.Services.PostService
 {
     public interface IPostService
     {
-        Task<ServiceResponse<List<GetPostDto>>> GetAllPosts();
+        Task<ServiceResponse<List<GetPostDto>>> GetAllPosts(int userId);
 
         Task<ServiceResponse<GetPostDto>> GetPostById(int id);
 

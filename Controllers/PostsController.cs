@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using backend_user_post.Dtos.Post;
 using backend_user_post.Models;
 using dotnet_users_posts.Models;
 using dotnet_users_posts.Services.PostService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_users_posts.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class PostsController : ControllerBase
@@ -26,7 +29,8 @@ namespace dotnet_users_posts.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> Get()
         {
-            return Ok(await _postService.GetAllPosts());
+            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            return Ok(await _postService.GetAllPosts(userId));
         }
 
         [HttpGet("{id}")]

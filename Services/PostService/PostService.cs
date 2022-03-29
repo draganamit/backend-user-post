@@ -51,10 +51,10 @@ namespace dotnet_users_posts.Services.PostService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetPostDto>>> GetAllPosts()
+        public async Task<ServiceResponse<List<GetPostDto>>> GetAllPosts(int userId)
         {
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
-            List<Posts> dbPosts = await _context.Posts.ToListAsync();
+            List<Posts> dbPosts = await _context.Posts.Where(c => c.User.Id == userId).ToListAsync();
             serviceResponse.Data = (dbPosts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
             // serviceResponse.Data = _mapper.Map<List<GetPostDto>>(posts).ToList();
             return serviceResponse;
