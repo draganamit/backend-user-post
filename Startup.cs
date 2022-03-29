@@ -32,6 +32,7 @@ namespace dotnet_users_posts
             services.AddControllers();
             services.AddAutoMapper(typeof (Startup));
             services.AddScoped<IPostService, PostService>();
+            services.AddScoped<IAuthRepository, AuthRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
