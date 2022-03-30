@@ -29,8 +29,7 @@ namespace dotnet_users_posts.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> Get()
         {
-            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
-            return Ok(await _postService.GetAllPosts(userId));
+            return Ok(await _postService.GetAllPosts());
         }
 
         [HttpGet("{id}")]
