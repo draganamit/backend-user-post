@@ -31,9 +31,10 @@ namespace dotnet_users_posts.Services.PostService
         {
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
             Posts post = _mapper.Map<Posts>(newPost);
+            post.User =await _context.User.FirstOrDefaultAsync( u => u.Id == GetUserId());
             await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync();
-            serviceResponse.Data = (_context.Posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+            serviceResponse.Data = (_context.Posts.Where(c => c.User.Id == GetUserId()).Select(c => _mapper.Map<GetPostDto>(c))).ToList();
             return serviceResponse;
         }
 
@@ -42,11 +43,20 @@ namespace dotnet_users_posts.Services.PostService
             ServiceResponse<List<GetPostDto>> serviceResponse = new ServiceResponse<List<GetPostDto>>();
             try
             {
-                Posts post = _context.Posts.First(c => c.Id == id);
-                _context.Posts.Remove(post);
-                await _context.SaveChangesAsync();
+                Posts post =await _context.Posts.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
+                if(post != null)
+                {
+                    _context.Posts.Remove(post);
+                    await _context.SaveChangesAsync();
 
-                serviceResponse.Data = (_context.Posts.Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+                    serviceResponse.Data = (_context.Posts.Where(c => c.User.Id == GetUserId()).Select(c => _mapper.Map<GetPostDto>(c))).ToList();
+                }
+                else
+                {
+                    serviceResponse.Success=false;
+                    serviceResponse.Message="Post not found.";
+                }
+                
             }
             catch (Exception ex)
             {
@@ -69,7 +79,7 @@ namespace dotnet_users_posts.Services.PostService
         public async Task<ServiceResponse<GetPostDto>> GetPostById(int id)
         {
             ServiceResponse<GetPostDto> serviceResponse = new ServiceResponse<GetPostDto>();
-            Posts dbPost = await _context.Posts.FirstOrDefaultAsync(c => c.Id == id);
+            Posts dbPost = await _context.Posts.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
             serviceResponse.Data = _mapper.Map<GetPostDto>(dbPost);
             return serviceResponse;
         }
