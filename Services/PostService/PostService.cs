@@ -89,13 +89,22 @@ namespace dotnet_users_posts.Services.PostService
             ServiceResponse<GetPostDto> serviceResponse = new ServiceResponse<GetPostDto>();
             try
             {
-                Posts post = await _context.Posts.FirstOrDefaultAsync(c => c.Id == updatedPost.Id);
-                post.Text = updatedPost.Text;
+                Posts post = await _context.Posts.Include(c => c.User).FirstOrDefaultAsync(c => c.Id == updatedPost.Id);
+                if(post.User.Id == GetUserId())
+                {
+                    post.Text = updatedPost.Text;
 
-                _context.Posts.Update(post);
-                await _context.SaveChangesAsync();
+                    _context.Posts.Update(post);
+                    await _context.SaveChangesAsync();
 
-                serviceResponse.Data = _mapper.Map<GetPostDto>(post);
+                    serviceResponse.Data = _mapper.Map<GetPostDto>(post);
+                }
+                else
+                {
+                    serviceResponse.Success=false;
+                    serviceResponse.Message="Post not found";
+                }
+                
             }
             catch (Exception ex)
             {
